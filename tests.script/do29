@@ -1,0 +1,12 @@
+cirr ./tests.fraig/sim13.aag
+cirgate 0 -fanout 2
+cirsweep
+ciroptimize
+cirsweep
+ciroptimize
+cirsim -file ./tests.fraig/pattern.13
+cirgate 0
+cirgate 84944
+cirfraig
+quit -f
+

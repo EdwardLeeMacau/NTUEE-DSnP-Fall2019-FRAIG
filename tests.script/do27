@@ -1,0 +1,4 @@
+cirr ./tests.fraig/opt05.aag
+cirp
+cirsim -r
+cirp -fec

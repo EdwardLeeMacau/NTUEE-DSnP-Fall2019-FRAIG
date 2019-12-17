@@ -1,0 +1,32 @@
+cirr ./tests.fraig/sim01.aag -replace
+cirsim -file ./tests.fraig/pattern.01 -output pattern.01.txt
+cirr ./tests.fraig/sim02.aag -replace
+cirsim -file ./tests.fraig/pattern.02 -output pattern.02.txt
+cirr ./tests.fraig/sim03.aag -replace
+cirsim -file ./tests.fraig/pattern.03 -output pattern.03.txt
+cirr ./tests.fraig/sim04.aag -replace
+cirsim -file ./tests.fraig/pattern.04 -output pattern.04.txt
+cirr ./tests.fraig/sim05.aag -replace
+cirsim -file ./tests.fraig/pattern.05 -output pattern.05.txt
+cirr ./tests.fraig/sim06.aag -replace
+cirsim -file ./tests.fraig/pattern.06 -output pattern.06.txt
+cirr ./tests.fraig/sim07.aag -replace
+cirsim -file ./tests.fraig/pattern.07 -output pattern.07.txt
+cirr ./tests.fraig/sim08.aag -replace
+cirsim -file ./tests.fraig/pattern.08 -output pattern.08.txt
+cirr ./tests.fraig/sim09.aag -replace
+cirsim -file ./tests.fraig/pattern.09 -output pattern.09.txt
+cirr ./tests.fraig/sim10.aag -replace
+cirsim -file ./tests.fraig/pattern.10 -output pattern.10.txt
+cirr ./tests.fraig/sim11.aag -replace
+cirsim -file ./tests.fraig/pattern.11 -output pattern.11.txt
+cirr ./tests.fraig/sim12.aag -replace
+cirsim -file ./tests.fraig/pattern.12 -output pattern.12.txt
+cirr ./tests.fraig/sim13.aag -replace
+cirsim -file ./tests.fraig/pattern.13 -output pattern.13.txt
+cirr ./tests.fraig/sim14.aag -replace
+cirsim -file ./tests.fraig/pattern.14 -output pattern.14.txt
+cirr ./tests.fraig/sim15.aag -replace
+cirsim -file ./tests.fraig/pattern.15 -output pattern.15.txt
+usage
+quit -f

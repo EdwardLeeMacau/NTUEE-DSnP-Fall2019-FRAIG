@@ -1,0 +1,351 @@
+cirr ./tests.fraig/opt01.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output opt01-write.txt
+cirr ./tests.fraig/opt02.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output opt02-write.txt
+cirr ./tests.fraig/opt03.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output opt03-write.txt
+cirr ./tests.fraig/opt04.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output opt04-write.txt
+cirr ./tests.fraig/opt05.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output opt05-write.txt
+cirr ./tests.fraig/opt06.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output opt06-write.txt
+cirr ./tests.fraig/opt07.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output opt07-write.txt
+cirr ./tests.fraig/sim01.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim01-write.txt
+cirr ./tests.fraig/sim02.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim02-write.txt
+cirr ./tests.fraig/sim03.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim03-write.txt
+cirr ./tests.fraig/sim04.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim04-write.txt
+cirr ./tests.fraig/sim05.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirw -output sim05-write.txt
+cirr ./tests.fraig/sim06.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim06-write.txt
+cirr ./tests.fraig/sim07.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim07-write.txt
+cirr ./tests.fraig/sim08.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim08-write.txt
+cirr ./tests.fraig/sim09.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim09-write.txt
+cirr ./tests.fraig/sim10.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim10-write.txt
+cirr ./tests.fraig/sim11.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim11-write.txt
+cirr ./tests.fraig/sim12.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim12-write.txt
+cirr ./tests.fraig/sim13.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim13-write.txt
+cirr ./tests.fraig/sim14.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim14-write.txt
+cirr ./tests.fraig/sim15.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output sim15-write.txt
+cirr ./tests.fraig/strash01.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output strash01-write.txt
+cirr ./tests.fraig/strash02.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output strash02-write.txt
+cirr ./tests.fraig/strash03.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output strash03-write.txt
+cirr ./tests.fraig/strash04.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output strash04-write.txt
+cirr ./tests.fraig/strash05.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output strash05-write.txt
+cirr ./tests.fraig/strash06.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output strash06-write.txt
+cirr ./tests.fraig/strash07.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output strash07-write.txt
+cirr ./tests.fraig/strash08.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output strash08-write.txt
+cirr ./tests.fraig/strash09.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output strash09-write.txt
+cirr ./tests.fraig/strash10.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output strash10-write.txt
+cirr ./tests.fraig/test1.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output test1-write.txt
+cirr ./tests.fraig/test2.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output test2-write.txt
+cirr ./tests.fraig/ISCAS85/C17.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C17-write.txt
+cirr ./tests.fraig/ISCAS85/C432.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C432-write.txt
+cirr ./tests.fraig/ISCAS85/C432_r.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C432_r-write.txt
+cirr ./tests.fraig/ISCAS85/C499.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C499.txt
+cirr ./tests.fraig/ISCAS85/C499_r.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C499_r.txt
+cirr ./tests.fraig/ISCAS85/C880.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C880-write.txt
+cirr ./tests.fraig/ISCAS85/C1355.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C1355-write.txt
+cirr ./tests.fraig/ISCAS85/C1908.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C1908-write.txt
+cirr ./tests.fraig/ISCAS85/C3540.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C3540-write.txt
+cirr ./tests.fraig/ISCAS85/C5315.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C5315-write.txt
+cirr ./tests.fraig/ISCAS85/C6288.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C6288-write.txt
+cirr ./tests.fraig/ISCAS85/C7552.aag -replace
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirsimulate -r
+cirfraig
+cirsweep
+ciroptimize
+cirw -output C7552-write.txt
+usage
+quit -f
