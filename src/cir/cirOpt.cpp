@@ -13,9 +13,6 @@
 
 using namespace std;
 
-// TODO: Please keep "CirMgr::sweep()" and "CirMgr::optimize()" for cir cmd.
-//       Feel free to define your own variables or functions
-
 /*******************************/
 /*   Global variable and enum  */
 /*******************************/
@@ -33,6 +30,7 @@ using namespace std;
 void
 CirMgr::sweep()
 {
+   // TODO
 }
 
 // Recursively simplifying from POs;
@@ -41,6 +39,7 @@ CirMgr::sweep()
 void
 CirMgr::optimize()
 {
+   // TODO
 }
 
 /***************************************************/

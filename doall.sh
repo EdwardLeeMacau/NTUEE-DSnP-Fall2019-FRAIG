@@ -8,9 +8,9 @@ echo do1
 ./fraig -F ./tests.script/do1 &> ./output/do1
 diff ./output/do1 ./output/do1-ref
 
-# echo do2
-# ./fraig -F ./tests.script/do2 &> ./output/do2
-# diff ./output/do2 ./output/do2-ref
+echo do2
+./fraig -F ./tests.script/do2 &> ./output/do2
+diff ./output/do2 ./output/do2-ref
 
 echo do3
 ./fraig -F ./tests.script/do3 &> ./output/do3

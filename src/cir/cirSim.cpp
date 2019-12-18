@@ -17,9 +17,6 @@
 
 using namespace std;
 
-// TODO: Keep "CirMgr::randimSim()" and "CirMgr::fileSim()" for cir cmd.
-//       Feel free to define your own variables or functions
-
 /*******************************/
 /*   Global variable and enum  */
 /*******************************/
@@ -34,11 +31,13 @@ using namespace std;
 void
 CirMgr::randomSim()
 {
+   // TODO
 }
 
 void
 CirMgr::fileSim(ifstream& patternFile)
 {
+   // TOOO
 }
 
 /*************************************************/

@@ -15,9 +15,6 @@
 
 using namespace std;
 
-// TODO: Please keep "CirMgr::strash()" and "CirMgr::fraig()" for cir cmd.
-//       Feel free to define your own variables or functions
-
 /*******************************/
 /*   Global variable and enum  */
 /*******************************/
@@ -31,14 +28,17 @@ using namespace std;
 /*******************************************/
 // _floatList may be changed.
 // _unusedList and _undefList won't be changed
+
 void
 CirMgr::strash()
 {
+   // TODO 
 }
 
 void
 CirMgr::fraig()
 {
+   // TODO
 }
 
 /********************************************/
