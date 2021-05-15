@@ -5,13 +5,15 @@
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2007-present LaDs(III), GIEE, NTU, Taiwan ]
 ****************************************************************************/
+
 #ifndef RN_GEN_H
 #define RN_GEN_H
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <stdlib.h>  
 #include <limits.h>
+
+#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define my_srandom  srandom
 #define my_random   random

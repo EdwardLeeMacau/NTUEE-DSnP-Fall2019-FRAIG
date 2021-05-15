@@ -5,10 +5,12 @@
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2007-present LaDs(III), GIEE, NTU, Taiwan ]
 ****************************************************************************/
-#include <iostream>
+
+#include <ctype.h>
 #include <termios.h>
 #include <stdlib.h>
-#include <ctype.h>
+
+#include <iostream>
 
 using namespace std;
 

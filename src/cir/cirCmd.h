@@ -21,4 +21,4 @@ CmdClass(CirSimCmd);
 CmdClass(CirFraigCmd);
 CmdClass(CirWriteCmd);
 
-#endif // CIR_CMD_H
+#endif  // CIR_CMD_H

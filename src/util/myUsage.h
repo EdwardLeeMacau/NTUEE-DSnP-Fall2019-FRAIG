@@ -9,11 +9,12 @@
 #ifndef MY_USAGE_H
 #define MY_USAGE_H
 
-#include <unistd.h>
-#include <iostream>
-#include <iomanip>
-#include <sys/times.h>
 #include <sys/resource.h>
+#include <sys/times.h>
+#include <unistd.h>
+
+#include <iomanip>
+#include <iostream>
 
 using namespace std;
 

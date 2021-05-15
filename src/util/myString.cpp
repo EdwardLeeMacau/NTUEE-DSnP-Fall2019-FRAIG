@@ -5,10 +5,12 @@
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2007-present LaDs(III), GIEE, NTU, Taiwan ]
 ****************************************************************************/
-#include <string>
+
 #include <ctype.h>
-#include <cstring>
+
 #include <cassert>
+#include <cstring>
+#include <string>
 
 using namespace std;
 

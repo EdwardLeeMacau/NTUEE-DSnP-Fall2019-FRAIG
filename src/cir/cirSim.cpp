@@ -6,23 +6,26 @@
   Copyright    [ Copyleft(c) 2008-present LaDs(III), GIEE, NTU, Taiwan ]
 ****************************************************************************/
 
-#include <fstream>
-#include <iostream>
-#include <unordered_map>
-#include <iomanip>
+#include "cirMgr.h"
+
+#include <limits.h>
+
 #include <algorithm>
 #include <cassert>
-#include <limits.h>
-#include "cirMgr.h"
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <unordered_map>
+
 #include "cirGate.h"
 #include "util.h"
 
-typedef vector<CirGate*> FECGroup;
-typedef vector<FECGroup> FECGroups;
-typedef pair<size_t, FECGroup> FECHashNode;
-typedef unordered_map<size_t, FECGroup> FECHash;
-
 using namespace std;
+
+using FECGroup = vector<CirGate *>;
+using FECGroups = vector<FECGroup>;
+using FECHashNode = pair<size_t, FECGroup>;
+using FECHash = unordered_map<size_t, FECGroup>;
 
 /*******************************/
 /*   Global variable and enum  */
@@ -36,155 +39,144 @@ using namespace std;
 /*   Public functions about Simulation          */
 /************************************************/
 
-/*
-   Util Function for inverting size_t
-*/
-size_t
-invert(const size_t& num)
+/**
+ * @brief utility function for inverting size_t (equal to ~num)
+ */
+size_t invert(const size_t &num)
 {
-   return SIZE_MAX - num;
+    return SIZE_MAX - num;
 }
 
-/*
-   Generate ALL 1 mash
-*/
-size_t
-mask(int length)
+/**
+ * @brief Generate bit mask 0..011...11
+ * @param[in] length number of bits with value 1
+ */
+size_t mask(int length)
 {
-   return ((size_t)1 << (length - 1)) | (((size_t)1 << (length - 1)) - 1);
+    return ((size_t)1 << (length - 1)) | (((size_t)1 << (length - 1)) - 1);
 }
 
 /************************************************/
 /*   Public member functions about Simulation   */
 /************************************************/
 
-void
-CirMgr::randomSim()
+void CirMgr::randomSim()
 {
-   // TODO
-   vector<size_t> txPattern(_I, 0);
-   unsigned int count = 0;
-   unsigned int prevFECs;
-   bool criteria = true;
+    vector<size_t> txPattern(_I, 0);
+    unsigned int count = 0;
+    unsigned int prevFECs;
+    bool criteria = true;
 
-   // Init FECGroups with CirGate
-   initFECGroups();
+    // Init FECGroups with CirGate
+    initFECGroups();
 
-   while (criteria)
-   {
-      // Record #FEC
-      prevFECs = FECs.size();
+    while (criteria) {
+        // Record #FEC
+        prevFECs = FECs.size();
 
-      // Simulate with rnGen
-      count += genPattern(txPattern);
-      simulateOnce(txPattern, 64, (count != 64));
+        // Simulate with rnGen
+        count += genPattern(txPattern);
+        simulateOnce(txPattern, 64, (count != 64));
 
-      cout << "\rTotal #FEC Group = " << FECs.size();
-      fflush(NULL);
+        cout << "\rTotal #FEC Group = " << FECs.size();
+        fflush(NULL);
 
-      criteria = (prevFECs != FECs.size()) && (FECs.size()) ;
-   }
+        criteria = (prevFECs != FECs.size()) && (FECs.size());
+    }
 
-   // Sort FEC Group
-   sort(FECs.begin(), FECs.end(),
-      [](vector<CirGate*> a, vector<CirGate*> b)
-         { return gate(a[0])->_gateId < gate(b[0])->_gateId; }
-   );
+    // Sort FEC Group
+    sort(FECs.begin(), FECs.end(), [](vector<CirGate *> a, vector<CirGate *> b) {
+        return gate(a[0])->_gateId < gate(b[0])->_gateId;
+    });
 
-   // Final Result
-   cout << '\r' << count << " patterns simulated." << endl;
-   return;
+    // Final Result
+    cout << '\r' << count << " patterns simulated." << endl;
+    return;
 }
 
-void
-CirMgr::fileSim(ifstream& patternFile)
+void CirMgr::fileSim(ifstream &patternFile)
 {
-   // TOOO
-   vector<vector<size_t>> txPatterns;
-   unsigned int count = 0;
+    vector<vector<size_t> > txPatterns;
+    unsigned int count = 0;
 
-   // Parse the Pattern File
-   count = parsePattern(txPatterns, patternFile);
+    // Parse the Pattern File
+    count = parsePattern(txPatterns, patternFile);
 
-   if (count)
-   {
-      initFECGroups();
+    if (count) {
+        initFECGroups();
 
-      // Simulate with File
-      for (size_t i = 0; i < txPatterns.size(); ++i)
-      {
-         simulateOnce(txPatterns[i], ((count - i * 64) > 64)? 64 : count - i * 64, (i != 0));
+        // Simulate with File
+        for (size_t i = 0; i < txPatterns.size(); ++i) {
+            simulateOnce(txPatterns[i], ((count - i * 64) > 64) ? 64 : count - i * 64, (i != 0));
 
-         cout << "\rTotal #FEC Group = " << FECs.size();
-         fflush(NULL);
-      }
-   }
+            cout << "\rTotal #FEC Group = " << FECs.size();
+            fflush(NULL);
+        }
+    }
 
-   // Sort FEC Group
-   sort(FECs.begin(), FECs.end(),
-      [](vector<CirGate*> a, vector<CirGate*> b)
-         { return gate(a[0])->_gateId < gate(b[0])->_gateId; }
-   );
+    // Sort FEC Group
+    sort(FECs.begin(), FECs.end(), [](vector<CirGate *> a, vector<CirGate *> b) {
+        return gate(a[0])->_gateId < gate(b[0])->_gateId;
+    });
 
-   // Final Result
-   cout << '\r' << count << " patterns simulated." << endl;
-   return;
+    // Final Result
+    cout << '\r' << count << " patterns simulated." << endl;
+    return;
 }
 
 /*************************************************/
 /*   Private member functions about Simulation   */
 /*************************************************/
 
-/*
-   Algorithm: All-Gate Simulation
-
-   @params txPatterns
-      The patterns array for all input
-*/
-void
-CirMgr::simulateOnce(const vector<size_t>& txPatterns, int maskLength, bool again)
+/**
+ * @brief Algorithm: All-Gate Simulation
+ * @param[in] txPatterns The patterns array for all input
+ */
+void CirMgr::simulateOnce(const vector<size_t> &txPatterns, int maskLength, bool again)
 {
-   vector<size_t> rxPatterns(_O, 0);
+    vector<size_t> rxPatterns(_O, 0);
 
-   feedSignal(txPatterns);
-   getSignal(rxPatterns);
-   splitFECGroups(maskLength, again);
+    feedSignal(txPatterns);
+    getSignal(rxPatterns);
+    splitFECGroups(maskLength, again);
 
-   if (_simLog)
-      encodePattern(txPatterns, rxPatterns, maskLength, _simLog);
+    if (_simLog) {
+        encodePattern(txPatterns, rxPatterns, maskLength, _simLog);
+    }
 }
 
-/*
-   Give Input Signal to AIG.
-*/
-void
-CirMgr::feedSignal(const vector<size_t>& patterns)
+/**
+ * @brief Give Input Signal to AIG. Set the value for each CirPIGate.
+ */
+void CirMgr::feedSignal(const vector<size_t> &patterns)
 {
-   // For each CirPIGate, set the value
-   for (size_t i = 0; i < _I; ++i)
-      { _gates[_pin[i]]->setState(patterns[i]); }
+    for (size_t i = 0; i < _I; ++i) {
+        _gates[_pin[i]]->setState(patterns[i]);
+    }
 }
 
 /*
    Get output signal of AIG.
 */
-void
-CirMgr::getSignal(vector<size_t>& patterns)
+void CirMgr::getSignal(vector<size_t> &patterns)
 {
-   vector<CirGate*> dfslist;
+    vector<CirGate *> dfslist;
 
-   // Build up dfslist
-   CirGate::raiseGlobalMarker();
-   for (size_t o = _M + 1; o < _M + _O + 1; ++o)
-      { DepthFirstTraversal(_gates[o], dfslist); }
+    // Build up dfslist
+    CirGate::raiseGlobalMarker();
+    for (size_t o = _M + 1; o < _M + _O + 1; ++o) {
+        DepthFirstTraversal(_gates[o], dfslist);
+    }
 
-   // For each gate, get the value
-   for (size_t i = 0; i < dfslist.size(); ++i)
-      { dfslist[i]->operate(); }
+    // For each gate, get the value
+    for (size_t i = 0; i < dfslist.size(); ++i) {
+        dfslist[i]->operate();
+    }
 
-   // For each gate, get the value
-   for (size_t o = 0; o < _O; ++o)
-      { patterns[o] = _gates[_pout[o]]->getState() ; }
+    // For each gate, get the value
+    for (size_t o = 0; o < _O; ++o) {
+        patterns[o] = _gates[_pout[o]]->getState();
+    }
 }
 
 /*
@@ -192,210 +184,207 @@ CirMgr::getSignal(vector<size_t>& patterns)
    1. Just initialize the FEC Groups
    2. Running over some patterns
 */
-void
-CirMgr::splitFECGroups(int maskLength, bool again)
+void CirMgr::splitFECGroups(int maskLength, bool again)
 {
-   // TODO: Fixed Complement Output Problem
-   FECGroups newFECs;
-   FECHash hashTable;
-   FECHash::iterator hashIt;
-   size_t value;
-   size_t m = mask(maskLength);
-   bool setInvert;
+    // TODO: Fixed Complement Output Problem
+    FECGroups newFECs;
+    FECHash hashTable;
+    FECHash::iterator hashIt;
+    size_t value;
+    size_t m = mask(maskLength);
+    bool setInvert;
 
-   for (size_t i = 0; i < FECs.size(); ++i)
-   {
-      // Init: Clean the hashTable for each FEC Group
-      hashTable.clear();
+    for (size_t i = 0; i < FECs.size(); ++i) {
+        // Init: Clean the hashTable for each FEC Group
+        hashTable.clear();
 
-      // hashTable only maintain 1 new FEC Group for 1 simulation value
-      for (FECGroup::iterator it = FECs[i].begin(); it != FECs[i].end(); ++it)
-      {
-         // Handling Complement Bits Problems
-         value = gate(*it)->getState();
+        // hashTable only maintain 1 new FEC Group for 1 simulation value
+        for (FECGroup::iterator it = FECs[i].begin(); it != FECs[i].end(); ++it) {
+            // Handling Complement Bits Problems
+            value = gate(*it)->getState();
 
-         // If keep running the Simulations...
-         if (again)
-            { setInvert = isInv(*it); }
-         // If it's first time to run FEC Simulations...
-         else if (value > (m >> 1))
-            { setInvert = true; }
-         else
-            { setInvert = false; }
+            // If keep running the Simulations...
+            if (again) {
+                setInvert = isInv(*it);
+            } else if (value > (m >> 1)) {  // If it's first time to run FEC Simulations...
+                setInvert = true;
+            } else {
+                setInvert = false;
+            }
 
+            if (setInvert) {
+                value = invert(value) & m;
+            }
 
-         if (setInvert) { value = invert(value) & m; }
+            // Hashing
+            hashIt = hashTable.find(value);
 
-         // Hashing
-         hashIt = hashTable.find(value);
+            // Find exists group
+            if (hashIt != hashTable.end()) {
+                hashIt->second.push_back((setInvert) ? setInv(*it) : *it);
+            } else {  // No exists group here, initialize one
+                hashTable.insert(
+                    FECHashNode(value, vector<CirGate *>(1, (setInvert) ? setInv(*it) : *it)));
+            }
+        }
 
-         // Find exists group
-         if (hashIt != hashTable.end())
-            { hashIt->second.push_back((setInvert)? setInv(*it) : *it); }
-         // No exists group here, initialize one
-         else
-            { hashTable.insert( FECHashNode(value, vector<CirGate*>(1, (setInvert)? setInv(*it) : *it)) ); }
-      }
+        // Add to new FEC Groups when #gates in group > 1
+        for (FECHash::iterator it = hashTable.begin(); it != hashTable.end(); ++it) {
+            if ((it->second).size() > 1) {
+                newFECs.push_back(it->second);
+            }
+        }
+    }
 
-      // Add to new FEC Groups when #gates in group > 1
-      for (FECHash::iterator it = hashTable.begin(); it != hashTable.end(); ++it)
-      {
-         if ((it->second).size() > 1)
-            { newFECs.push_back(it->second); }
-      }
-   }
-
-   // Finally replace the FEC Groups information
-   FECs = newFECs;
+    // Finally replace the FEC Groups information
+    FECs = newFECs;
 }
 
-void
-CirMgr::initFECGroups()
+void CirMgr::initFECGroups()
 {
-   // Init FECGroups with CirGate
-   // if (FECs.empty())
-   // {
-   FECs.clear();
-   FECs.push_back(FECGroup());
-   FECs[0].push_back(_gates[0]);
-   for (size_t i = 0; i < _pin.size(); ++i)
-      { if (_gates[_pin[i]]) { FECs[0].push_back(_gates[_pin[i]]); } }
-   for (size_t a = 0; a < _aig.size(); ++a)
-      { if (_gates[_aig[a]]) { FECs[0].push_back(_gates[_aig[a]]); } }
-   // for (size_t o = 0; o < _pout.size(); ++o)
-   //    { if (_gates[_pout[o]]) { FECs[0].push_back(_gates[_pout[o]]); } }
-   // }
+    // Init FECGroups with CirGate
+    // if (FECs.empty())
+    // {
+    FECs.clear();
+    FECs.push_back(FECGroup());
+    FECs[0].push_back(_gates[0]);
+    for (size_t i = 0; i < _pin.size(); ++i) {
+        if (_gates[_pin[i]]) {
+            FECs[0].push_back(_gates[_pin[i]]);
+        }
+    }
+    for (size_t a = 0; a < _aig.size(); ++a) {
+        if (_gates[_aig[a]]) {
+            FECs[0].push_back(_gates[_aig[a]]);
+        }
+    }
+    // for (size_t o = 0; o < _pout.size(); ++o)
+    //    { if (_gates[_pout[o]]) { FECs[0].push_back(_gates[_pout[o]]); } }
+    // }
 }
 
-int
-CirMgr::parsePattern(vector<vector<size_t>>& patterns, istream& is) const
+int CirMgr::parsePattern(vector<vector<size_t> > &patterns, istream &is) const
 {
-   vector<size_t> ptn(_I, 0);
-   string ptnStr = "";
-   int count = 0, tmp;
+    vector<size_t> ptn(_I, 0);
+    string ptnStr = "";
+    int count = 0, tmp;
 
-   while (getline(is, ptnStr))
-   {
-      ptnStr.erase(remove_if(ptnStr.begin(), ptnStr.end(), ::isspace), ptnStr.end());
+    while (getline(is, ptnStr)) {
+        ptnStr.erase(remove_if(ptnStr.begin(), ptnStr.end(), ::isspace), ptnStr.end());
 
-      // Error Detection
-      if (!ptnStr.length())
-      {
-         /* ignore this line */
-         continue;
-      }
-      else if (ptnStr.length() < _I)
-      {
-         cout << "Bad Pattern: The length of pattern: " << ptnStr.length()
-              << ", excepted PI: " << _I << endl;
+        // Error Detection
+        if (!ptnStr.length()) {
+            /* ignore this line */
+            continue;
+        } else if (ptnStr.length() < _I) {
+            cout << "Bad Pattern: The length of pattern: " << ptnStr.length()
+                 << ", excepted PI: " << _I << endl;
 
-         return count;
-      }
-      else if (ptnStr.length() > _I)
-      {
-         cout << endl << "Error: Pattern(" << ptnStr << ") length("
-              << ptnStr.length() << ") does not match the number of inputs("
-              << _I << ") in a circuit!!" << endl;
+            return count;
+        } else if (ptnStr.length() > _I) {
+            cout << endl
+                 << "Error: Pattern(" << ptnStr << ") length(" << ptnStr.length()
+                 << ") does not match the number of inputs(" << _I << ") in a circuit!!" << endl;
 
-         return count;
-      }
+            return count;
+        }
 
-      // Feed the bits into patterns
-      for (int i = 0; i < _I; ++i)
-      {
-         tmp = (int)ptnStr[i] - 48;
+        // Feed the bits into patterns
+        for (int i = 0; i < _I; ++i) {
+            tmp = (int)ptnStr[i] - 48;
 
-         // Error Detection
-         if (tmp != 0 && tmp != 1)
-         {
-            cout << endl << "Error: Pattern(" << ptnStr
-                 << ") contains a non-0/1 character('"
-                 << ptnStr[i] << "')." << endl;
+            // Error Detection
+            if (tmp != 0 && tmp != 1) {
+                cout << endl
+                     << "Error: Pattern(" << ptnStr << ") contains a non-0/1 character('"
+                     << ptnStr[i] << "')." << endl;
 
-            return false;
-         }
+                return false;
+            }
 
-         ptn[i] = (ptn[i] << 1) + tmp;
-      }
+            ptn[i] = (ptn[i] << 1) + tmp;
+        }
 
-      // To count a line was prased successfully.
-      ++count;
+        // To count a line was prased successfully.
+        ++count;
 
-      if (count % 64 == 0)
-         { patterns.push_back(ptn); fill(ptn.begin(), ptn.end(), 0); }
-   }
+        if (count % 64 == 0) {
+            patterns.push_back(ptn);
+            fill(ptn.begin(), ptn.end(), 0);
+        }
+    }
 
-   patterns.push_back(ptn);
-   return count;
+    patterns.push_back(ptn);
+    return count;
 }
 
-void
-CirMgr::encodePattern(const vector<size_t>& txPattern, const vector<size_t>& rxPattern, int maskLength, ostream* os) const
+void CirMgr::encodePattern(const vector<size_t> &txPattern, const vector<size_t> &rxPattern,
+                           int maskLength, ostream *os) const
 {
-   // size_t parallelMask = mask(maskLength);
-   size_t bitMask = (size_t)1 << (maskLength - 1);
+    // size_t parallelMask = mask(maskLength);
+    size_t bitMask = (size_t)1 << (maskLength - 1);
 
-   for (int i = 0; i < maskLength; ++i)
-   {
-      for (int j = 0; j < _I; ++j)
-         { *(os) << ((bool)(txPattern[j] & bitMask)); }
-      *(os) << ' ';
-      for (int j = 0; j < _O; ++j)
-         { *(os) << ((bool)(rxPattern[j] & bitMask)); }
-      *(os) << endl;
+    for (int i = 0; i < maskLength; ++i) {
+        for (int j = 0; j < _I; ++j) {
+            *(os) << ((bool)(txPattern[j] & bitMask));
+        }
+        *(os) << ' ';
 
-      bitMask = bitMask >> 1;
-   }
+        for (int j = 0; j < _O; ++j) {
+            *(os) << ((bool)(rxPattern[j] & bitMask));
+        }
+        *(os) << endl;
+
+        bitMask = bitMask >> 1;
+    }
 }
 
-/*
-   Generate 64 bits Pattern
-*/
-int
-CirMgr::genPattern(vector<size_t>& patterns) const
+/**
+ * @brief Generate bits Pattern with length size_t
+ * @param[in] pattern vector to store the patterns, should preconfig the length of patterns
+ */
+int CirMgr::genPattern(vector<size_t> &patterns) const
 {
-   for (vector<size_t>::iterator it = patterns.begin(); it != patterns.end(); ++it)
-      { *it = ((size_t)rnGen(INT_MAX) << 32) + rnGen(INT_MAX); }
+    const vector<size_t>::iterator end = patterns.end();
 
-   return 64;
+    for (vector<size_t>::iterator it = patterns.begin(); it != end; ++it) {
+        *it = ((size_t)rnGen(INT_MAX) << 32) + rnGen(INT_MAX);
+    }
+
+    return 64;
 }
 
 /*************************************************/
 /*   Private member functions about CirGate      */
 /*************************************************/
 
-const size_t&
-CirGate::getState()
+const size_t &CirGate::getState()
 {
-   return _state;
+    return _state;
 }
 
-void
-CirGate::setState(const size_t& s)
+void CirGate::setState(const size_t &s)
 {
-   _state = s;
+    _state = s;
 }
 
-void
-CirGate::operate()
+void CirGate::operate()
 {
-   /* Do Nothing */
+    /* Do Nothing */
 }
 
 /*************************************************/
 /*  Private member functions about CirConstGate  */
 /*************************************************/
 
-void
-CirConstGate::operate()
+void CirConstGate::operate()
 {
-   /* Do Nothing */
+    /* Do Nothing */
 }
 
-const size_t&
-CirConstGate::getState()
+const size_t &CirConstGate::getState()
 {
-   return 0;
+    return 0;
 }
 
 /*************************************************/
@@ -406,14 +395,15 @@ CirConstGate::getState()
 void
 CirUndefGate::operate()
 {
-   // throw "Not vaild for CirUndefGate::operate() (" + to_string(_gateId) + ")\n";
+   // throw "Not vaild for CirUndefGate::operate() (" + to_string(_gateId) +
+")\n";
 }
 
 const size_t&
 CirUndefGate::getState()
 {
-   // throw "Not vaild for CirUndefGate::getState() (" + to_string(_gateId) + ")\n";
-   return 0;
+   // throw "Not vaild for CirUndefGate::getState() (" + to_string(_gateId) +
+")\n"; return 0;
 }
 */
 
@@ -424,10 +414,9 @@ CirUndefGate::getState()
 /*
    For CirPOGate, State = Fanin.State
 */
-void
-CirPOGate::operate()
+void CirPOGate::operate()
 {
-   _state = isInv(_fanin[0])? invert(gate(_fanin[0])->getState()) : gate(_fanin[0])->getState();
+    _state = isInv(_fanin[0]) ? invert(gate(_fanin[0])->getState()) : gate(_fanin[0])->getState();
 }
 
 /*************************************************/
@@ -437,13 +426,12 @@ CirPOGate::operate()
 /*
    For CirAIGate, State = A & B
 */
-void
-CirAIGate::operate()
+void CirAIGate::operate()
 {
-   size_t in[2];
+    size_t in[2];
 
-   in[0] = isInv(_fanin[0])? invert(gate(_fanin[0])->getState()) : gate(_fanin[0])->getState();
-   in[1] = isInv(_fanin[1])? invert(gate(_fanin[1])->getState()) : gate(_fanin[1])->getState();
+    in[0] = isInv(_fanin[0]) ? invert(gate(_fanin[0])->getState()) : gate(_fanin[0])->getState();
+    in[1] = isInv(_fanin[1]) ? invert(gate(_fanin[1])->getState()) : gate(_fanin[1])->getState();
 
-   _state = in[0] & in[1];
+    _state = in[0] & in[1];
 }

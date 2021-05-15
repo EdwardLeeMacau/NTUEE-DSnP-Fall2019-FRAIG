@@ -6,18 +6,20 @@
   Copyright    [ Copyleft(c) 2012-present LaDs(III), GIEE, NTU, Taiwan ]
 ****************************************************************************/
 
+#include "cirMgr.h"
+
 #include <cassert>
 #include <unordered_map>
-#include "cirMgr.h"
+
 #include "cirGate.h"
-#include "sat.h"
 #include "myHashMap.h"
+#include "sat.h"
 #include "util.h"
 
 using namespace std;
 
-typedef CirGateHash Hash;
-typedef std::pair<size_t, CirGate* > HashNode;
+using Hash = CirGateHash;
+using HashNode = std::pair<size_t, CirGate *>;
 
 /*******************************/
 /*   Global variable and enum  */
@@ -33,184 +35,174 @@ typedef std::pair<size_t, CirGate* > HashNode;
 // _floatList may be changed.
 // _unusedList and _undefList won't be changed
 
-void
-CirMgr::strash()
+void CirMgr::strash()
 {
-   // TODO
-   unordered_map<size_t, CirGate*> table;
-   unordered_map<size_t, CirGate*>::iterator it;
-   vector<CirGate*> dfslist;
+    // TODO
+    unordered_map<size_t, CirGate *> table;
+    unordered_map<size_t, CirGate *>::iterator it;
+    vector<CirGate *> dfslist;
 
-   // Make DFSList
-   CirGate::raiseGlobalMarker();
-   for (size_t i = _M + 1; i < _M + _O + 1; ++i)
-      { DepthFirstTraversal(_gates[i], dfslist); }
+    // Make DFSList
+    CirGate::raiseGlobalMarker();
+    for (size_t i = _M + 1; i < _M + _O + 1; ++i) {
+        DepthFirstTraversal(_gates[i], dfslist);
+    }
 
-   // STRASH for each CirAIGate
-   for (size_t i = 0; i < dfslist.size(); ++i)
-   {
-      if (!dfslist[i]->isAig()) { continue; }
+    // STRASH for each CirAIGate
+    for (size_t i = 0; i < dfslist.size(); ++i) {
+        if (!dfslist[i]->isAig()) {
+            continue;
+        }
 
-      Hash key(dfslist[i]);
+        Hash key(dfslist[i]);
 
-      it = table.find(key());
+        it = table.find(key());
 
-      // If not in hashtable, Insert as a record
-      if (it == table.end())
-      {
-         table.insert(HashNode(key(), dfslist[i]));
-      }
-      // If some structure already in hash table
-      else if (identityStruct(dfslist[i], it->second))
-      {
-         StrashMsg(dfslist[i], it->second);
-         mergeGate(dfslist[i], it->second);
-      }
-      // If Hash collision only
-      else
-      {
-         table.insert(HashNode(key(), dfslist[i]));
-      }
-   }
+        // If not in hash table, insert it as a record. 
+        // Otherwise, verify these two gates are identity, then merging it
+        if (it == table.end()) {  
+            table.insert(HashNode(key(), dfslist[i]));
+        } else if (identityStruct(dfslist[i], it->second)) {
+            StrashMsg(dfslist[i], it->second);
+            mergeGate(dfslist[i], it->second);
+        } else {
+            table.insert(HashNode(key(), dfslist[i]));
+        }
+    }
 
-   // Maintain Mgr Property
-   _notused.clear();    getNotUsedList(_notused);
-   _floating.clear();   getFloatingList(_floating);
+    // Maintain CirMgr Property
+    _notused.clear();
+    getNotUsedList(_notused);
+    _floating.clear();
+    getFloatingList(_floating);
 }
 
-void
-CirMgr::fraig()
+void CirMgr::fraig()
 {
-   if (!FECs.size()) { return; }
+    vector<CirGate *> unSATGroup, SATGroup;
+    SatSolver solver;
+    Var tmpVar;
+    bool isSat;
 
-   vector<CirGate*> unSATGroup, SATGroup;
-   SatSolver solver;
-   Var tmpVar;
-   bool isSat;
-   solver.initialize();
+    if (!FECs.size()) {
+        return;
+    }
 
-   for (int i = 0; i < _M + 1; ++i)
-      { if (_gates[i]) _gates[i]->setVar(solver.newVar()); }
+    solver.initialize();
 
-   createCNF(solver);
+    for (int i = 0; i < _M + 1; ++i) {
+        if (_gates[i]) _gates[i]->setVar(solver.newVar());
+    }
 
-   sort(FECs.begin(), FECs.end(), [](const vector<CirGate*>& a, const vector<CirGate*>& b){ return a.size() < b.size(); });
+    createCNF(solver);
 
-   for (size_t i = 0; i < FECs.size(); ++i)
-   {
-      // Looping elements For each group
-      for (size_t j = 0; j < FECs[i].size(); ++j)
-      {
-         // Init unSAT Group
-         unSATGroup.clear();
-         unSATGroup.push_back(FECs[i][j]);
-         SATGroup.clear();
+    sort(FECs.begin(), FECs.end(), [](const vector<CirGate *> &a, const vector<CirGate *> &b) {
+        return a.size() < b.size();
+    });
 
-         // Searching
-         for (size_t k = j + 1; k < FECs[i].size(); ++k)
-         {
-            // Try to prove SAT(f, g)
-            tmpVar = solver.newVar();
-            solver.addXorCNF(tmpVar, gate(FECs[i][j])->_var, isInv(FECs[i][j]), gate(FECs[i][k])->_var, isInv(FECs[i][k]));
-            solver.assumeRelease();
-            solver.assumeProperty(tmpVar, true);
+    for (size_t i = 0; i < FECs.size(); ++i) {
+        // Looping elements For each group
+        for (size_t j = 0; j < FECs[i].size(); ++j) {
+            // Init unSAT Group
+            unSATGroup.clear();
+            unSATGroup.push_back(FECs[i][j]);
+            SATGroup.clear();
 
-            isSat = solver.assumpSolve();
+            // Searching
+            for (size_t k = j + 1; k < FECs[i].size(); ++k) {
+                // Try to prove SAT(f, g)
+                tmpVar = solver.newVar();
+                solver.addXorCNF(tmpVar, gate(FECs[i][j])->_var, isInv(FECs[i][j]),
+                                 gate(FECs[i][k])->_var, isInv(FECs[i][k]));
+                solver.assumeRelease();
+                solver.assumeProperty(tmpVar, true);
 
-            // getSatAssignment()
-            cout << "\rProving " << gate(FECs[i][j])->_gateId << " = "
-                  << gate(FECs[i][k])->_gateId << "..."
-                  << ((isSat)? "SAT" : "UNSAT\n");
+                isSat = solver.assumpSolve();
 
-            // Mark if unSAT
-            if (!isSat)
-               { unSATGroup.push_back(FECs[i][j]); }
-         }
+                // getSatAssignment()
+                cout << "\rProving " << gate(FECs[i][j])->_gateId << " = "
+                     << gate(FECs[i][k])->_gateId << "..." << ((isSat) ? "SAT" : "UNSAT\n");
 
-         // If unSAT occurs
-         if (unSATGroup.size() > 2)
-         {
-            for (size_t k = 1; k < unSATGroup.size(); ++k)
-            {
-               FraigMsg(unSATGroup[k], unSATGroup[0]);
-               mergeGate(unSATGroup[k], unSATGroup[0]);
-               FECs[i].erase(find(FECs[i].begin(), FECs[i].end(), unSATGroup[k]));
+                // Mark if unSAT
+                if (!isSat) {
+                    unSATGroup.push_back(FECs[i][j]);
+                }
             }
 
-            FECs[i].erase(find(FECs[i].begin(), FECs[i].end(), unSATGroup[0]));
-         }
-      }
-   }
+            // If unSAT occurs
+            if (unSATGroup.size() > 2) {
+                for (size_t k = 1; k < unSATGroup.size(); ++k) {
+                    FraigMsg(unSATGroup[k], unSATGroup[0]);
+                    mergeGate(unSATGroup[k], unSATGroup[0]);
+                    FECs[i].erase(find(FECs[i].begin(), FECs[i].end(), unSATGroup[k]));
+                }
 
-   FECs.clear();
+                FECs[i].erase(find(FECs[i].begin(), FECs[i].end(), unSATGroup[0]));
+            }
+        }
+    }
+
+    FECs.clear();
 }
 
 /********************************************/
 /*   Private member functions about strash  */
 /********************************************/
 
-/*
-   Only Check CirAIGate
-
-   @params a, b
-      CirAIGate a, b
-*/
-bool
-CirMgr::identityStruct(CirGate* a, CirGate* b) const
+bool CirMgr::identityStruct(CirGate *a, CirGate *b) const
 {
-   // TODO
-   return true;
+    // TODO
+    return true;
 
-   if ((a->_fanin.size() != 2) || (b->_fanin.size() != 2))
-   { return false; }
+    size_t size = a->_fanin.size();
 
-   for (size_t i = 0; i < a->_fanin.size(); ++i)
-   {
-      if (a->_fanin[i] != b->_fanin[i]) { return false; }
-   }
+    if ((a->_fanin.size() != 2) || (b->_fanin.size() != 2)) {
+        return false;
+    }
 
-   return true;
+    for (size_t i = 0; i < size; ++i) {
+        if (a->_fanin[i] != b->_fanin[i]) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
-void
-CirMgr::StrashMsg(CirGate* from, CirGate* to) const
+void CirMgr::StrashMsg(CirGate *from, CirGate *to) const
 {
-   cout << "Strashing: " << gate(to)->_gateId << " merging " << ((isInv(to))? "!" : "") << from->_gateId << "..." << endl;
+    cout << "Strashing: " << gate(to)->_gateId << " merging " << ((isInv(to)) ? "!" : "")
+         << from->_gateId << "..." << endl;
 }
 
 /********************************************/
 /*   Private member functions about fraig   */
 /********************************************/
 
-void
-CirGate::setVar(const Var& var)
+void CirGate::setVar(const Var &var)
 {
-   _var = var;
+    _var = var;
 }
 
-Var
-CirGate::getVar()
+Var CirGate::getVar()
 {
-   return _var;
+    return _var;
 }
 
-void
-CirMgr::createCNF(SatSolver& solver)
+void CirMgr::createCNF(SatSolver &solver)
 {
-   CirGate* target;
-   for (int i = 0; i < _aig.size(); ++i)
-   {
-      target = _gates[_aig[i]];
-      solver.addAigCNF(
-         target->_var,
-         gate(target->_fanin[0])->_var, isInv(target->_fanin[0]),
-         gate(target->_fanin[1])->_var, isInv(target->_fanin[1])
-      );
-   }
+    CirGate *target;
+    size_t size = _aig.size();
+
+    for (int i = 0; i < size; ++i) {
+        target = _gates[_aig[i]];
+        solver.addAigCNF(target->_var, gate(target->_fanin[0])->_var, isInv(target->_fanin[0]),
+                         gate(target->_fanin[1])->_var, isInv(target->_fanin[1]));
+    }
 }
 
-void
-CirMgr::FraigMsg(CirGate* from, CirGate* to) const
+void CirMgr::FraigMsg(CirGate *from, CirGate *to) const
 {
-   cout << "Fraig: " << gate(to)->_gateId << " merging " << ((isInv(to))? "!" : "") << from->_gateId << "..." << endl;
+    cout << "Fraig: " << gate(to)->_gateId << " merging " << ((isInv(to)) ? "!" : "")
+         << from->_gateId << "..." << endl;
 }

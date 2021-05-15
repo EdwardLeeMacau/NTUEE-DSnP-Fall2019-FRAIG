@@ -5,15 +5,18 @@
   Author       [ Chung-Yang (Ric) Huang ]
   Copyright    [ Copyleft(c) 2017-present LaDs(III), GIEE, NTU, Taiwan ]
 ****************************************************************************/
-#include <sys/types.h>
+
 #include <dirent.h>
 #include <errno.h>
-#include <vector>
-#include <string>
+#include <sys/types.h>
+
+#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <iomanip>
-#include <algorithm>
+#include <string>
+#include <vector>
+
 #include "rnGen.h"
 #include "myUsage.h"
 
