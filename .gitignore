@@ -1,6 +1,17 @@
+# Intermediate Files
 *.o
 
 .depend.mak
 .extheader.mak
+
+# Symbolic Link for reference libraries
+libcmd.a
+libgtest.a
+libgmock.a
+
+# Build Products
+libcir.a
+libsat.a
+libutil.a
 
 fraig
