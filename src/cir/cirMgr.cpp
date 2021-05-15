@@ -176,71 +176,69 @@ CirMgr::readCircuit(const string& fileName)
    int state;
    char type;
 
-   // Open File   
+   // Open File. Check if open error
    file.open(fileName);
 
-   // Check if open error
    if (!file.good())
    {
       cerr << "Cannot open design \"" << fileName << "\"!!" << endl;
       cirMgr = NULL;
+
       return false;
    }
 
    // Set LineNo
    lineNo = 0;
+   colNo = 0;
 
    // Parsing Header
    getline(file, tmp);
+   if (!readHeader(tmp)) { return false; }
 
-   if (!readHeader(tmp))      
-      { return false; }
-   
    // Next Line
    ++lineNo;
    colNo = 0;
 
-   // Set Attribute (1 (CONST 0) + M (PI / AIG) + O (PO)) 
-   _gates.resize(_M + _O + 1); 
+   // Set Attribute (1 (CONST 0) + M (PI / AIG) + O (PO))
+   _gates.resize(_M + _O + 1);
    fill(_gates.begin(), _gates.end(), (CirGate*)NULL);
 
-   // Set Constant False
+   // Set Gate: CONST 0
    _gates[0] = new CirConstGate();
 
-   // Number ID of PIns in range [1, _M], Record LineNo also.
-   for (int i = 0; i < _I; ++i)
+   // Set Gate: PIn
+   //   Number ID of PIns in range [1, _M], Record LineNo also.
+   for (; lineNo < _I + 1; ++lineNo)
    {
       getline(file, tmp);
       state = sscanf(tmp.c_str(), "%d", &i1);
 
-      // Parsing
+      // Parsing PIns
       if (state < 1)
          { errMsg = "PI literal ID"; parseError(MISSING_NUM); reset(); cirMgr = NULL; return false; }
-      else if (state == 1 && loadInput(i1)) 
+      else if (state == 1 && loadInput(i1))
          { /* Do nothing */ }
-         
-      ++lineNo;
    }
 
-   // Latch
-   for (int l = 0; l < _L; ++l)
+   // Set Gate: LATCH
+   //   ...
+   for (; lineNo < _I + _L + 1; ++lineNo)
    {
       getline(file, tmp);
       state = sscanf(tmp.c_str(), "%d %d", &i1, &i2);
 
-      // Parsing
+      // Parsing LATCH
       if (state < 2)
          { errMsg = "Latch literal ID"; parseError(MISSING_NUM); reset(); cirMgr = NULL; return false; }
-      else if (state == 2 && loadLatch(i1, i2)) 
+      else if (state == 2 && loadLatch(i1, i2))
          { /* Do nothing */ }
-      
-      ++lineNo;
    }
 
    // Record Marker
    pos_o = file.tellg();
 
-   // Number ID of POs in range [_M + 1, _M + _O], and fanin is in range [0, _M]
+   // Set Gate: POuts
+   //   Number ID of POs in range [_M + 1, _M + _O], and fanin is in range [0, _M]
    for (int o = 0; o < _O; ++o)
    {
       getline(file, tmp);
@@ -251,13 +249,14 @@ CirMgr::readCircuit(const string& fileName)
          { errMsg = "PO literal ID"; parseError(MISSING_NUM); reset(); cirMgr = NULL; return false; }
       else if (state < 1)
          { parseError(MISSING_NUM); reset(); cirMgr = NULL; return false; }
-      else if (state == 1 && loadOutput(_M + o + 1, i1)) 
+      else if (state == 1 && loadOutput(_M + o + 1, i1))
          { /* Do nothing */ }
 
       ++lineNo;
    }
 
-   // Number ID of AIGs
+   // Set Gate: AIGs
+   //   Number ID of AIGs...
    for (int a = 0; a < _A; ++a)
    {
       getline(file, tmp);
@@ -268,37 +267,35 @@ CirMgr::readCircuit(const string& fileName)
          { errMsg = "AIG literal ID"; parseError(MISSING_NUM); reset(); cirMgr = NULL; return false; }
       else if (state < 3)
          { errMsg = "AIG literal ID"; parseError(MISSING_NUM); reset(); cirMgr = NULL; return false; }
-      else if (state == 3 && loadAIG(i1)) 
+      else if (state == 3 && loadAIG(i1))
          { /* Do nothing */ }
-      
+
       ++lineNo;
    }
 
-   /*
-    * Load Symbol and Comment, if they are at the file
-   */
+   // Load Symbol and Comment, if they are at the file
    while (true)
    {
-      if (file.peek() == 'c')          // Read Comment
-      { 
-         getline(file, tmp);
-         if (tmp != "c")
-            { parseError(ILLEGAL_IDENTIFIER); }
+      if (file.peek() == EOF) { break; }  // No Symbol and Comment
 
-         while(file.good()) 
-         { 
-            getline(file, tmp); 
-            _comment << tmp << endl; 
+      if (file.peek() == 'c')             // Read Comment
+      {
+         getline(file, tmp);
+
+         if (tmp != "c") { parseError(ILLEGAL_IDENTIFIER); }
+
+         while(file.good())
+         {
+            getline(file, tmp);
+            _comment << tmp << endl;
          }
 
-         break; 
+         break;
       }
-      if (file.peek() == EOF)          // No Symbol and Comment
-         { break; }
-         
+
       getline(file, tmp);
       state = sscanf(tmp.c_str(), "%c%u %s", &type, &i1, buf);
-      
+
       if (state < 3)
          { parseError(MISSING_NUM); }
       else if (state == 3)
@@ -307,9 +304,9 @@ CirMgr::readCircuit(const string& fileName)
 
          if (type == 'i')
          {
-            if (i1 > _A) 
+            if (i1 > _A)
                { parseError(NUM_TOO_BIG); }
-            if (i1 < 0)    
+            if (i1 < 0)
                { parseError(NUM_TOO_SMALL); }
          }
          else if (type == 'o')
@@ -317,13 +314,13 @@ CirMgr::readCircuit(const string& fileName)
             // Parsing Error
             if (i1 > _O)
                { parseError(NUM_TOO_BIG); }
-            if (i1 < 0)    
+            if (i1 < 0)
                { parseError(NUM_TOO_SMALL); }
-            
+
             i1 += _M;
          }
          else { parseError(ILLEGAL_SYMBOL_TYPE); reset(); cirMgr = NULL; return false; }
-         
+
          // Load Symbol
          loadSymbol(i1 + 1, tmp2);
       }
@@ -332,28 +329,29 @@ CirMgr::readCircuit(const string& fileName)
 
    /*
     * Connecting AIG. Don't need to do error prevention after here.
-    *  
-    * Before connecting the circuit... the connecting information 
+    *
+    * Before connecting the circuit... the connecting information
     * is keeped by only CirAIGate._fanout.
-    * 
-    * After connecting the circuit... each CirGate can see the 
+    *
+    * After connecting the circuit... each CirGate can see the
     * ascenders (CirGate._fanin) and descenders (CirGate._fanout).
-    * 
+    *
     * - CirPOGate
     * - CirAIGate
-    * 
+    *
     * Find out the Undefined Gate
-    * 
+    *
     * Find out the Floating Gate
     */
 
    // Reset LineNo to _I
    lineNo = _I + 1;
 
-   // Load the fanin information.
-   file.clear();  file.seekg(pos_o, ios::beg); 
+   // Load the AIG fanin information.
+   file.clear();
+   file.seekg(pos_o, ios::beg);
 
-   // Connect Output
+   // Connect POut
    for (int o = 0; o < _O; ++o)
    {
       file >> i1;
@@ -366,49 +364,44 @@ CirMgr::readCircuit(const string& fileName)
    {
       file >> i1 >> i2 >> i3;
 
-      // if i2 is Undefined
-      if (!_gates[i2 / 2])
-      {
-         // _floating.push_back(i1 / 2);
-         _gates[i2 / 2] = new CirUndefGate(i2 / 2);
-      }   
-      
-      // if i3 is Undefined
-      if (!_gates[i3 / 2])
-      {
-         // _floating.push_back(i1 / 2);
-         _gates[i3 / 2] = new CirUndefGate(i3 / 2);
-      }
-         
+      // if i2 or i3 is Undefined
+      if (!_gates[i2 / 2]) { _gates[i2 / 2] = new CirUndefGate(i2 / 2); }
+      if (!_gates[i3 / 2]) { _gates[i3 / 2] = new CirUndefGate(i3 / 2); }
+
       // i2 and i3 are the fanins of i1
-      _gates[i1 / 2]->addFanin(getGate(i2 / 2), i2 % 2);  
+      _gates[i1 / 2]->addFanin(getGate(i2 / 2), i2 % 2);
       _gates[i1 / 2]->addFanin(getGate(i3 / 2), i3 % 2);
-      
+
       // i1 is the fanin of i2 and i3
-      _gates[i2 / 2]->addFanout(getGate(i1 / 2), i2 % 2); 
+      _gates[i2 / 2]->addFanout(getGate(i1 / 2), i2 % 2);
       _gates[i3 / 2]->addFanout(getGate(i1 / 2), i3 % 2);
    }
 
-   // Find out the defined but not in used gates
-   for (size_t i = 0; i < _aig.size(); ++i)
-   {
-      if (!getGate(_aig[i])->_fanout.size())
-         _notused.push_back(_aig[i]);
-   }
+   // Find out CirUNDEFGate: (floating)
+   _floating.clear();   getFloatingList(_floating);
 
-   for (size_t i = 0; i < _pin.size(); ++i)
-   {
-      if (!getGate(_pin[i])->_fanout.size())
-         _notused.push_back(_pin[i]);
-   }
+   // Find out NOTUSED Gate: Defined but no output connected
+   _notused.clear();    getNotUsedList(_notused);
 
-   // Find out the undefined gates (floating)
+   // Close fstream
+   file.close();
+
+   // Sort the gate output
+   sortOut();
+
+   return true;
+}
+
+// Find out CirUNDEFGate: (floating)
+void
+CirMgr::getFloatingList(vector<unsigned int>& floating)
+{
    for (size_t i = 0; i < _aig.size(); ++i)
    {
       for (vector<CirGate*>::iterator it2 = getGate(_aig[i])->_fanin.begin(); it2 != getGate(_aig[i])->_fanin.end(); ++it2)
       {
-         if (CirGate::gate(*it2)->isFloating())
-            _floating.push_back(_aig[i]);
+         if (gate(*it2)->isFloating())
+            floating.push_back(_aig[i]);
       }
    }
 
@@ -416,36 +409,36 @@ CirMgr::readCircuit(const string& fileName)
    {
       for (vector<CirGate*>::iterator it2 = getGate(_pout[i])->_fanin.begin(); it2 != getGate(_pout[i])->_fanin.end(); ++it2)
       {
-         if (CirGate::gate(*it2)->isFloating())
-            _floating.push_back(_pout[i]);
+         if (gate(*it2)->isFloating())
+            floating.push_back(_pout[i]);
       }
    }
 
-   // Close fstream
-   file.close();
+   ::sort(floating.begin(), floating.end());
+}
 
-   /*
-    * Sorting _fanin and _fanout
-    * - AIG (multiple _fanout)
-    * - PIN (multiple _fanout)
-   */
-   for (unsigned int i = 0; i < _M; ++i )
+void
+CirMgr::getNotUsedList(vector<unsigned int>& notused)
+{
+   for (size_t i = 0; i < _aig.size(); ++i)
    {
-      if (getGate(i))
-      {
-         sort(getGate(i)->_fanout.begin(), getGate(i)->_fanout.end(),
-            [](CirGate* a, CirGate* b) { return CirGate::gate(a)->_gateId < CirGate::gate(b)->_gateId; });
-      }
+      if (!getGate(_aig[i])->_fanout.size())
+         notused.push_back(_aig[i]);
    }
 
-   // Reset LineNo to 0
-   lineNo = 0;
+   for (size_t i = 0; i < _pin.size(); ++i)
+   {
+      if (!getGate(_pin[i])->_fanout.size())
+         notused.push_back(_pin[i]);
+   }
 
-   // Sorting the vector
-   sort(_floating.begin(), _floating.end());
-   sort(_notused.begin(), _notused.end());
+   ::sort(notused.begin(), notused.end());
+}
 
-   return true;
+const vector<vector<CirGate*>>&
+CirMgr::getFECGroups() const
+{
+   return FECs;
 }
 
 /**********************************************************/
@@ -475,7 +468,9 @@ CirMgr::printSummary() const
         << "  Total" << right << setw(9) << _pin.size() + _pout.size() + _aig.size() << endl;
 }
 
-/* Forward (from PIn to POut) printing */
+/*
+   Forward (from PIn to POut) printing
+*/
 void
 CirMgr::printNetlist() const
 {
@@ -502,7 +497,7 @@ CirMgr::printNetlist() const
    // Depth First Traversal from all POut
    for (size_t i = 0; i < _pout.size(); ++i)
       DepthFirstTraversal(_pout[i], dfslist);
-   
+
    // Print by the priority of dfslist
    for (vector<CirGate*>::iterator it = dfslist.begin(); it != dfslist.end(); ++it)
    {
@@ -510,15 +505,15 @@ CirMgr::printNetlist() const
 
       for (vector<CirGate*>::iterator it2 = (*it)->_fanin.begin(); it2 != (*it)->_fanin.end(); ++it2)
       {
-         tmp = CirGate::gate(*it2);
-         
+         tmp = gate(*it2);
+
          cout << ' ';
 
          // Print "*" if needed.
          if (tmp->isFloating())     cout << '*';
 
          // Print "!" if needed.
-         if (CirGate::isInv(*it2))  cout << '!';
+         if (isInv(*it2))  cout << '!';
 
          cout << tmp->_gateId;
       }
@@ -541,7 +536,7 @@ CirMgr::printPIs() const
 
    for (size_t i = 0; i < _pin.size(); ++i)
       cout << ' ' << (_pin[i]);
-   
+
    cout << endl;
 }
 
@@ -552,7 +547,7 @@ CirMgr::printPOs() const
 
    for (size_t i = 0; i < _pout.size(); ++i)
       cout << ' ' << (_pout[i]);
-   
+
    cout << endl;
 }
 
@@ -561,7 +556,7 @@ CirMgr::printPOs() const
 
    Attribute
    - Floating fanins
-   - Defined but not used 
+   - Defined but not used
 */
 void
 CirMgr::printFloatGates() const
@@ -572,17 +567,17 @@ CirMgr::printFloatGates() const
 
       for (size_t i = 0; i < _floating.size(); ++i)
          cout << ' ' << (_floating[i]);
-      
+
       cout << endl;
    }
 
    if (!_notused.empty())
    {
       cout << "Gates defined but not used  :";
-      
+
       for (size_t i = 0; i < _notused.size(); ++i)
          cout << ' ' << (_notused[i]);
-      
+
       cout << endl;
    }
 }
@@ -590,6 +585,13 @@ CirMgr::printFloatGates() const
 void
 CirMgr::printFECPairs() const
 {
+   for (size_t i = 0; i < FECs.size(); ++i )
+   {
+      cout << '[' << i << ']';
+      for (size_t j = 0; j < FECs[i].size(); ++j)
+         { cout << ' ' << FECs[i][j]->_gateId; }
+      cout << endl;
+   }
 }
 
 void
@@ -612,7 +614,7 @@ CirMgr::writeAag(ostream& outfile) const
    vector<CirGate*> dfslist;
    size_t activeAIG = 0;
    CirGate* tmp;
-   
+
    // Output + AIG + Input (With DFS order)
    CirGate::raiseGlobalMarker();
    for (size_t i = 0; i < _pout.size(); ++i)
@@ -625,16 +627,16 @@ CirMgr::writeAag(ostream& outfile) const
 
    // Header
    outfile << "aag " << _M << " " << _I << " " << _L << " " <<  _O << " " << activeAIG << endl;
-   
+
    // Input
    for (size_t i = 0; i < _pin.size(); ++i)
       outfile << 2 * _pin[i] << endl;
-   
+
    // Output
    for (size_t i = 0; i < _pout.size(); ++i)
    {
       tmp = getGate(_pout[i])->_fanin[0];
-      outfile << ((CirGate::isInv(tmp))? (2 * CirGate::gate(tmp)->_gateId + 1): (2 * tmp->_gateId)) << endl;
+      outfile << ((isInv(tmp))? (2 * gate(tmp)->_gateId + 1): (2 * tmp->_gateId)) << endl;
    }
 
    // AIG (Print the dfslist)
@@ -645,7 +647,7 @@ CirMgr::writeAag(ostream& outfile) const
       {
          outfile << 2 * (*it)->_gateId;
          for (vector<CirGate*>::iterator it2 = (*it)->_fanin.begin(); it2 != (*it)->_fanin.end(); ++it2)
-            outfile << ' ' << ((CirGate::isInv(*it2))? (2 * CirGate::gate(*it2)->_gateId + 1) : (2 * (*it2)->_gateId));
+            outfile << ' ' << ((isInv(*it2))? (2 * gate(*it2)->_gateId + 1) : (2 * (*it2)->_gateId));
          outfile << endl;
       }
    }
@@ -664,7 +666,7 @@ CirMgr::writeAag(ostream& outfile) const
    }
 
    // Comment (Just for fun!)
-   // if (_comment.good()) 
+   // if (_comment.good())
    //    outfile << 'c' << endl << _comment.str();
 
    // Comment (For vimdiff)
@@ -681,8 +683,54 @@ CirMgr::writeGate(ostream& outfile, CirGate *g) const
 /*   HELPER FUNCTION                                      */
 /**********************************************************/
 
+void
+CirMgr::connect(CirGate* prev, CirGate* next)
+{
+   // TODO
+   gate(prev)->addFanout(gate(next), isInv(prev) ^ isInv(next));
+   gate(next)->addFanin(gate(prev), isInv(prev) ^ isInv(next));
+}
+
+void
+CirMgr::sortInOut()
+{
+   sortIn(); sortOut();
+}
+
 /*
-   Overloading.
+   Sorting _fanin of CirAIGate
+*/
+void
+CirMgr::sortIn()
+{
+   for (unsigned int i = 0; i < _M; ++i )
+   {
+      if (_gates[i])
+      {
+         ::sort(_gates[i]->_fanin.begin(), _gates[i]->_fanin.end(),
+            [](CirGate* a, CirGate* b) { return gate(a)->_gateId < gate(b)->_gateId; });
+      }
+   }
+}
+
+/*
+   Sorting _fanout of CirAIGate, CirPIGate and CirConstGate
+*/
+void
+CirMgr::sortOut()
+{
+   for (unsigned int i = 0; i < _M; ++i )
+   {
+      if (_gates[i])
+      {
+         ::sort(_gates[i]->_fanout.begin(), _gates[i]->_fanout.end(),
+            [](CirGate* a, CirGate* b) { return gate(a)->_gateId < gate(b)->_gateId; });
+      }
+   }
+}
+
+/*
+   Overloading of DepthFirstSearch Algorithm.
 
    @param gateID
       The gateID to start searching.
@@ -696,11 +744,8 @@ CirMgr::DepthFirstTraversal(const unsigned int gateID, vector<CirGate*> &dfslist
 }
 
 /*
-   DepthFirstSearch Algorithm, implemented by recursive
-   
-   Search gates from POut(s) to PIn(s). 
-   
-   Include floating gates
+   DepthFirstSearch Algorithm, implemented by recursive.
+   Search gates from POut(s) to PIn(s).
 
    @param c
       The start point of CirGate
@@ -718,8 +763,8 @@ CirMgr::DepthFirstTraversal(CirGate* c, vector<CirGate*> &dfslist) const
 
    // Left -> Rigth -> Center
    for (vector<CirGate*>::iterator it = c->_fanin.begin(); it != c->_fanin.end(); ++it)
-      DepthFirstTraversal(CirGate::gate(*it), dfslist);
-      
+      DepthFirstTraversal(gate(*it), dfslist);
+
    dfslist.push_back(c);
 }
 
@@ -731,33 +776,31 @@ CirMgr::readHeader(const string &s)
    if ( s.find('\t') != string::npos )
       { errInt = '\t'; colNo += s.find('\t'); parseError(ILLEGAL_WSPACE); }
    else if (state == -1)
-   {
-      colNo = s.length();    { parseError(MISSING_NUM); }
-   }
+      { colNo = s.length(); parseError(MISSING_NUM); }
    else if (state < 6)
-   { 
-      if (string(buf) != "aag") 
+   {
+      if (string(buf) != "aag")
          { errMsg = string(buf); parseError(ILLEGAL_IDENTIFIER); }
       else
          { colNo = s.length(); errMsg = "number of variables"; parseError(MISSING_NUM); }
    }
    else if (state == 6)
    {
-      if (s[0] == ' ')        
+      if (s[0] == ' ')
          { parseError(EXTRA_SPACE); }
-      else if (s[0] != 'a')   
+      else if (s[0] != 'a')
          { errInt = s[0]; parseError(ILLEGAL_WSPACE); }
-      else if (string(buf) != "aag") 
+      else if (string(buf) != "aag")
          { errMsg = ""; parseError(ILLEGAL_IDENTIFIER); }
       else if (count(s.begin(), s.end(), ' ') > 5)
-         { 
-            for (int i = 0; i < 6; ++i) colNo = s.find(' ', ++colNo); 
-            parseError(MISSING_NEWLINE); 
+         {
+            for (int i = 0; i < 6; ++i) { colNo = s.find(' ', ++colNo); }
+            parseError(MISSING_NEWLINE);
          }
-      else if (_M < _I + _A)       
+      else if (_M < _I + _A)
          { errInt = _M; parseError(NUM_TOO_SMALL); }
-      else                    
-         { return true; }
+
+      return true;
    }
 
    reset(); cirMgr = NULL; return false;
@@ -800,16 +843,17 @@ CirMgr::loadInput(const unsigned int &id)
    @return bool
       True if successfully load a POut
 */
-bool 
+bool
 CirMgr::loadOutput(const unsigned int &id, const unsigned int &fanin)
 {
    // Parsing Error
-   if (false) {}
-   else 
+   if (false)
+      {}
+   else
    {
       _pout.push_back(id);
       _gates[id] = new CirPOGate(id, lineNo + 1);
-      
+
       return true;
    }
 
@@ -861,7 +905,7 @@ CirMgr::loadLatch(const unsigned int &Q, const unsigned int &nextQ)
    @param s
       The Symbol
 */
-bool 
+bool
 CirMgr::loadSymbol(const unsigned int &id, const string &s)
 {
    // Parsing Error
@@ -869,10 +913,10 @@ CirMgr::loadSymbol(const unsigned int &id, const string &s)
    else
    {
       _gates[id]->_symbol = s;
-      
+
       return true;
    }
-   
+
    return false;
 }
 
