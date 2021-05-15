@@ -1,0 +1,6 @@
+*.o
+
+.depend.mak
+.extheader.mak
+
+fraig
