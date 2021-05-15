@@ -4,6 +4,9 @@
 .depend.mak
 .extheader.mak
 
+# Analysis Files
+tags
+
 # Symbolic Link for reference libraries
 libcmd.a
 libgtest.a
