@@ -8,7 +8,10 @@ TARGET    = $(BINDIR)/$(EXEC)
 
 target: $(TARGET)
 
-$(TARGET): $(COBJS) $(LIBDEPEND)
+$(TARGET): $(COBJS) $(LIBDEPEND) | $(BINDIR)
 	@echo "> building $(EXEC)..."
 	@$(CXX) $(CFLAGS) -I$(EXTINCDIR) $(COBJS) -L$(LIBDIR) $(INCLIB) -o $@
 
+$(BINDIR):
+	@echo "> creating $@..."
+	@mkdir -p $@
