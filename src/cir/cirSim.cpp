@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <cassert>
+#include <limits.h>
 #include "cirMgr.h"
 #include "cirGate.h"
 #include "util.h"
@@ -41,7 +42,7 @@ using namespace std;
 size_t
 invert(const size_t& num)
 {
-   return SIZE_T_MAX - num;
+   return SIZE_MAX - num;
 }
 
 /*
@@ -143,7 +144,7 @@ CirMgr::fileSim(ifstream& patternFile)
 void
 CirMgr::simulateOnce(const vector<size_t>& txPatterns, int maskLength, bool again)
 {
-   vector<size_t> rxPatterns(_A, 0);
+   vector<size_t> rxPatterns(_O, 0);
 
    feedSignal(txPatterns);
    getSignal(rxPatterns);
