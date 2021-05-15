@@ -1,4 +1,4 @@
-REFPKGS  = cmd
+REFPKGS  = cmd gtest gmock
 SRCPKGS  = cir sat util
 LIBPKGS  = $(REFPKGS) $(SRCPKGS)
 MAIN     = main
@@ -56,6 +56,6 @@ ctags:
 linux18 linux16 mac:
 	@for pkg in $(REFPKGS); \
 	do \
-	        cd lib; ln -sf lib$$pkg-$@.a lib$$pkg.a; cd ../..; \
+		cd lib; ln -sf lib$$pkg-$@.a lib$$pkg.a; cd ..; \
 	done
 	@cd ref; ln -sf $(EXEC)-$@ $(EXEC);
